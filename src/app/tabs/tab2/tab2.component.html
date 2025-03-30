@@ -1,0 +1,86 @@
+<app-report 
+  reportId="report-tab2" 
+  reportTitle="Financial Report" 
+  headerLogo="assets/images/logo.png"
+  headerTitle="Financial Summary Q1 2023">
+  
+  <div reportBody>
+    <p class="lead mb-3">Quarterly financial performance overview.</p>
+    
+    <div class="card mb-4">
+      <div class="card-header">
+        Key Financial Metrics
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body text-center">
+                <h6 class="text-muted">Revenue</h6>
+                <h3 class="mb-0">$2.5M</h3>
+                <span class="badge bg-success">+12.5%</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body text-center">
+                <h6 class="text-muted">Expenses</h6>
+                <h3 class="mb-0">$1.8M</h3>
+                <span class="badge bg-danger">+7.3%</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body text-center">
+                <h6 class="text-muted">Net Profit</h6>
+                <h3 class="mb-0">$0.7M</h3>
+                <span class="badge bg-success">+15.2%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mb-4">
+      <div class="card-header">
+        Expense Breakdown
+      </div>
+      <div class="card-body">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>% of Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Operations</td>
+              <td>$750K</td>
+              <td>41.7%</td>
+            </tr>
+            <tr>
+              <td>Marketing</td>
+              <td>$480K</td>
+              <td>26.7%</td>
+            </tr>
+            <tr>
+              <td>Human Resources</td>
+              <td>$320K</td>
+              <td>17.8%</td>
+            </tr>
+            <tr>
+              <td>Research & Development</td>
+              <td>$250K</td>
+              <td>13.8%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</app-report>

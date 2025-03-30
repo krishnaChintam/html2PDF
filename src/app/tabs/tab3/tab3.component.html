@@ -1,0 +1,96 @@
+<app-report 
+  reportId="report-tab3" 
+  reportTitle="HR Report" 
+  headerLogo="assets/images/logo.png"
+  headerTitle="Human Resources Q1 2023">
+  
+  <div reportBody>
+    <p class="lead mb-3">Quarterly human resources performance and metrics.</p>
+    
+    <div class="card mb-4">
+      <div class="card-header">
+        Workforce Summary
+      </div>
+      <div class="card-body">
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <div class="card text-center h-100">
+              <div class="card-body">
+                <h1 class="display-4">257</h1>
+                <p class="text-muted">Total Employees</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card text-center h-100">
+              <div class="card-body">
+                <h1 class="display-4">24</h1>
+                <p class="text-muted">New Hires</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card text-center h-100">
+              <div class="card-body">
+                <h1 class="display-4">8</h1>
+                <p class="text-muted">Departures</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card text-center h-100">
+              <div class="card-body">
+                <h1 class="display-4">6.2%</h1>
+                <p class="text-muted">Turnover Rate</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <h5>Department Distribution</h5>
+        <table class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Department</th>
+              <th>Headcount</th>
+              <th>% of Total</th>
+              <th>QoQ Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Engineering</td>
+              <td>95</td>
+              <td>37%</td>
+              <td class="text-success">+8%</td>
+            </tr>
+            <tr>
+              <td>Sales</td>
+              <td>64</td>
+              <td>25%</td>
+              <td class="text-success">+3%</td>
+            </tr>
+            <tr>
+              <td>Operations</td>
+              <td>45</td>
+              <td>18%</td>
+              <td class="text-danger">-2%</td>
+            </tr>
+            <tr>
+              <td>Marketing</td>
+              <td>28</td>
+              <td>11%</td>
+              <td class="text-success">+12%</td>
+            </tr>
+            <tr>
+              <td>HR & Admin</td>
+              <td>25</td>
+              <td>9%</td>
+              <td>0%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</app-report>

@@ -1,0 +1,31 @@
+.report-container {
+  background-color: #fff;
+  border-radius: 0.25rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.report-title {
+  background-color: #f8f9fa;
+}
+
+.report-body {
+  min-height: 250px;
+  padding-bottom: 1rem;
+}
+
+.report-footer {
+  background-color: #f8f9fa;
+  font-size: 0.875rem;
+}
+
+@media print {
+  .report-container {
+    box-shadow: none;
+  }
+  
+  button {
+    display: none;
+  }
+}
