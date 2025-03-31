@@ -1,0 +1,23 @@
+.nav-section {
+  width: 30%; /* 30% width for the navigation section */
+  max-width: 250px; /* Optional: Add a max-width if needed */
+  flex-shrink: 0; /* Prevent shrinking */
+  overflow-y: auto; /* Add scroll if tabs overflow */
+}
+
+.content-section {
+  width: 70%; /* 70% width for the content section */
+  flex-grow: 1; /* Allow growing to fill space */
+  overflow-y: auto; /* Enable vertical scrolling for content */
+}
+
+/* Ensure full height */
+.container-fluid,
+.d-flex.flex-grow-1 {
+  height: 100%;
+}
+
+.nav-pills .nav-link {
+  border-radius: 0.25rem;
+  margin-bottom: 0.25rem;
+}

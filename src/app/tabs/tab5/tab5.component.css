@@ -1,0 +1,20 @@
+/* Prevent cards and table rows from breaking across PDF pages */
+.card {
+  break-inside: avoid;
+  page-break-inside: avoid; /* Older browser compatibility */
+}
+
+table tr {
+  break-inside: avoid;
+  page-break-inside: avoid; /* Older browser compatibility */
+}
+
+/* Ensure table content doesn't cause unnecessary overflow issues */
+.table-responsive {
+  overflow-x: visible; /* Try allowing horizontal overflow for canvas rendering */
+}
+
+/* Attempt to make sure card body content flows correctly */
+.card-body {
+  overflow: hidden; /* Prevent content spilling out if calculation is off */
+}

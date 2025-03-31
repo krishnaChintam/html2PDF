@@ -80,46 +80,147 @@ export class DownloadService {
     const options = {
       scale: 2, // Higher scale for better quality
       useCORS: true, // To handle images from different origins
-      logging: false, // Disable logs
-      scrollX: 0,
-      scrollY: 0
+      logging: false // Disable logs
     };
 
-    html2canvas(element, options).then(canvas => {
-      // Calculate PDF dimensions based on canvas
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      
-      // Create PDF
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      let position = 0;
+    // --- Start: Use iframe technique like in downloadCombinedPdf ---
+    const processElement = async () => {
+      try {
+        // Create a completely isolated environment using an iframe
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.top = '-9999px';
+        iframe.style.width = '1000px';  // Consistent width
+        iframe.style.height = '9999px'; // Large height
+        iframe.style.visibility = 'hidden';
 
-      // Add image to first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        document.body.appendChild(iframe);
 
-      // Add more pages if content exceeds A4 height
-      let heightLeft = imgHeight - pageHeight;
-      
-      // If content is larger than a single page
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        // Wait for iframe to load and populate content
+        await new Promise<void>(resolve => {
+          iframe.onload = () => resolve();
+
+          const elementContent = element.cloneNode(true) as HTMLElement;
+
+          if (iframe.contentDocument) {
+            const iframeDoc = iframe.contentDocument;
+            iframeDoc.open();
+            iframeDoc.write(`
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta charset="utf-8">
+                <title>Report</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                <style>
+                  body { margin: 0; padding: 20px; font-family: Arial, sans-serif; width: 210mm; }
+                  .report-container { background-color: #fff; border-radius: 0.25rem; margin-bottom: 1rem; position: relative; }
+                  .report-title { background-color: #f8f9fa; }
+                  .report-body { padding-bottom: 1rem; }
+                  * { position: relative !important; overflow: visible !important; z-index: auto !important; }
+                  button { display: none; }
+                  /* Include styles that might be needed from tab5.component.css or globally */
+                  .card { break-inside: avoid; page-break-inside: avoid; }
+                  table tr { break-inside: avoid; page-break-inside: avoid; }
+                  .table-responsive { overflow-x: visible; }
+                  .card-body { overflow: hidden; }
+                </style>
+              </head>
+              <body>
+                <div id="container"></div>
+              </body>
+              </html>
+            `);
+            iframeDoc.close();
+
+            const container = iframeDoc.getElementById('container');
+            if (container) {
+              container.appendChild(elementContent);
+
+              // Force all tabs within the cloned element (if any exist) to be visible
+              const tabPanes = iframeDoc.querySelectorAll('.tab-pane');
+              tabPanes.forEach(pane => {
+                (pane as HTMLElement).style.display = 'block';
+                (pane as HTMLElement).style.opacity = '1';
+                (pane as HTMLElement).classList.add('active', 'show');
+                (pane as HTMLElement).classList.remove('fade');
+              });
+              const tabNavs = iframeDoc.querySelectorAll('.nav-tabs, [role="tablist"]');
+              tabNavs.forEach(nav => nav.remove());
+            } else {
+              resolve(); // Resolve if container not found
+            }
+          } else {
+            resolve(); // Resolve if contentDocument not available
+          }
+        });
+
+        // Wait extra time for rendering
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Capture the iframe content
+        if (iframe.contentDocument && iframe.contentDocument.body) {
+          const contentBody = iframe.contentDocument.body;
+          const canvas = await html2canvas(contentBody, {
+            ...options,
+            windowWidth: 1000, // Match combined options
+            windowHeight: 9999,
+            x: 0,
+            y: 0,
+            width: contentBody.scrollWidth,
+            height: contentBody.scrollHeight
+          });
+
+          // Calculate PDF dimensions based on canvas
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = 210; // A4 width in mm
+          const pageHeight = 297; // A4 height in mm
+          const imgHeight = canvas.height * imgWidth / canvas.width;
+
+          // Create PDF
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          let position = 0;
+
+          // Add image to first page
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+
+          // Add more pages if content exceeds A4 height
+          let heightLeft = imgHeight - pageHeight;
+          while (heightLeft > 0) { // Use > 0 check
+            position -= pageHeight; // Adjust position correctly for subsequent pages
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+          }
+
+          // Save PDF
+          pdf.save(`${fileName || 'report'}.pdf`);
+
+        } else {
+           console.error('Could not capture content from iframe.');
+        }
+
+        // Clean up iframe
+        document.body.removeChild(iframe);
+
+        // Hide loading indicator
+        this.hideLoading();
+
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        // Clean up iframe if it exists
+        const iframeElement = document.querySelector('iframe[style*="position: absolute"]');
+        if (iframeElement && document.body.contains(iframeElement)) {
+            document.body.removeChild(iframeElement);
+        }
+        // Hide loading indicator on error too
+        this.hideLoading();
       }
-      
-      // Save PDF
-      pdf.save(`${fileName || 'report'}.pdf`);
-      
-      // Hide loading indicator
-      this.hideLoading();
-    }).catch(error => {
-      console.error('Error generating PDF:', error);
-      // Hide loading indicator on error too
-      this.hideLoading();
-    });
+    };
+    // --- End: Use iframe technique ---
+
+    // Start the process
+    processElement();
   }
 
   /**
