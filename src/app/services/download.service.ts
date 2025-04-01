@@ -83,6 +83,42 @@ export class DownloadService {
     // Process element with heading tracking
     return this.processElement(element, processedHeadings);
   }
+
+  /**
+ * Converts an image element to a base64 data URL using a canvas.
+ * Note: The image must be loaded before calling this function.
+ *
+ * @param element - The HTMLImageElement to convert.
+ * @returns The base64 data URL string of the image, or an empty string if conversion fails.
+ */
+private convertImageToBase64(element: HTMLElement): string {
+  if (!(element instanceof HTMLImageElement)) {
+    return '';
+  }
+  
+  const img = element as HTMLImageElement;
+  
+  // Ensure the image is fully loaded
+  if (!img.complete || img.naturalWidth === 0) {
+    console.warn('Image is not fully loaded or failed to load.');
+    return '';
+  }
+  
+  // Create a canvas element to draw the image
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    // Draw the image on the canvas
+    ctx.drawImage(img, 0, 0);
+    // Get the data URL from the canvas in PNG format
+    return canvas.toDataURL('image/png');
+  }
+  
+  return '';
+}
   
   /**
    * Processes an element and its children for PDF content extraction
@@ -153,6 +189,21 @@ export class DownloadService {
           alignment: element.style.textAlign || 'left'
         });
         break;
+      case 'a':
+        // Handle anchor tags (links)
+        const href = element.getAttribute('href');
+        if (href) {
+          content.push({
+            text: element.textContent,
+            link: href,
+            color: 'blue',
+            decoration: 'underline',
+            style: 'link'
+          });
+        } else {
+          content.push({ text: element.textContent });
+        }
+        break;
       case 'ul':
         const ulItems: any[] = [];
         Array.from(element.querySelectorAll('li')).forEach(li => {
@@ -175,7 +226,32 @@ export class DownloadService {
               ]
             });
           } else {
-            ulItems.push(li.textContent);
+            // Check if the list item contains a link
+            const link = li.querySelector('a');
+            if (link) {
+              const href = link.getAttribute('href');
+              const linkText = link.textContent;
+              const restText = li.textContent?.replace(linkText || '', '').trim();
+              
+              if (href) {
+                ulItems.push({
+                  text: [
+                    { 
+                      text: linkText, 
+                      link: href,
+                      color: 'blue',
+                      decoration: 'underline',
+                      style: 'link'
+                    },
+                    { text: restText ? ' - ' + restText : '' }
+                  ]
+                });
+              } else {
+                ulItems.push(li.textContent);
+              }
+            } else {
+              ulItems.push(li.textContent);
+            }
           }
         });
         if (ulItems.length > 0) {
@@ -185,7 +261,32 @@ export class DownloadService {
       case 'ol':
         const olItems: any[] = [];
         Array.from(element.querySelectorAll('li')).forEach(li => {
-          olItems.push(li.textContent);
+          // Check if the list item contains a link
+          const link = li.querySelector('a');
+          if (link) {
+            const href = link.getAttribute('href');
+            const linkText = link.textContent;
+            const restText = li.textContent?.replace(linkText || '', '').trim();
+            
+            if (href) {
+              olItems.push({
+                text: [
+                  { 
+                    text: linkText, 
+                    link: href,
+                    color: 'blue',
+                    decoration: 'underline',
+                    style: 'link'
+                  },
+                  { text: restText ? ' - ' + restText : '' }
+                ]
+              });
+            } else {
+              olItems.push(li.textContent);
+            }
+          } else {
+            olItems.push(li.textContent);
+          }
         });
         if (olItems.length > 0) {
           content.push({ ol: olItems, margin: [0, 5, 0, 5] });
@@ -241,10 +342,31 @@ export class DownloadService {
                 padding: [5, 3, 5, 3]
               });
             } else {
-              row.push({
-                text: td.textContent,
-                alignment: td.getAttribute('align') || 'left'
-              });
+              // Check if cell contains a link
+              const link = td.querySelector('a');
+              if (link) {
+                const href = link.getAttribute('href');
+                if (href) {
+                  row.push({
+                    text: link.textContent,
+                    link: href,
+                    color: 'blue',
+                    decoration: 'underline',
+                    style: 'link',
+                    alignment: td.getAttribute('align') || 'left'
+                  });
+                } else {
+                  row.push({
+                    text: td.textContent,
+                    alignment: td.getAttribute('align') || 'left'
+                  });
+                }
+              } else {
+                row.push({
+                  text: td.textContent,
+                  alignment: td.getAttribute('align') || 'left'
+                });
+              }
             }
           });
           if (row.length > 0) {
@@ -398,8 +520,31 @@ export class DownloadService {
           content.push({ text: element.textContent, margin: [0, 0, 0, 0] });
         }
         break;
-      case 'img':
-        // Skip images for now as they require base64 conversion
+      case 'img':// Added image processing: include images in the PDF
+      console.log('Processing image element:', element);
+      const src = element.getAttribute('src');
+      if (src) {
+        let imageData: string | null = null;
+        // If the src is already a base64 data URL, use it directly
+        if (src.startsWith('data:')) {
+          imageData = src;
+        } else {
+          // Otherwise, convert the image to base64.
+          // Note: Ensure that convertImageToBase64 is implemented appropriately.
+          imageData = this.convertImageToBase64(element);
+        }
+        if (imageData) {
+          content.push({
+            image: imageData,
+            // Use the image's width/height attributes if available, otherwise default values
+            fit: [
+              parseInt(element.getAttribute('width') || '200', 10),
+              parseInt(element.getAttribute('height') || '200', 10)
+            ],
+            margin: [0, 5, 0, 5]
+          });
+        }
+      }
         break;
       case 'button':
       case 'input':
@@ -564,6 +709,10 @@ export class DownloadService {
             fontSize: 12,
             color: '#495057',
             fillColor: '#f8f9fa'
+          },
+          link: {
+            decoration: 'underline',
+            color: '#0563c1'
           }
         },
         // Reduce margins to prevent wasted space
@@ -635,7 +784,9 @@ export class DownloadService {
         pagebreak: { 
           mode: ['avoid-all', 'css', 'legacy'],
           avoid: ['tr', 'td', '.card', '.report-container', 'h1', 'h2', 'h3', 'h4']
-        }
+        },
+        // Enable clickable links in the PDF
+        enableLinks: true
       };
       
       // Generate PDF
@@ -742,6 +893,10 @@ export class DownloadService {
             fontSize: 12,
             color: '#495057',
             fillColor: '#f8f9fa'
+          },
+          link: {
+            decoration: 'underline',
+            color: '#0563c1'
           }
         },
         // Reduce margins to prevent wasted space
