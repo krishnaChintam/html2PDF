@@ -443,7 +443,7 @@ export class DownloadService {
     const isCard = element.classList.contains('card') || element.classList.contains('report-container');
     
     // For title or header sections
-    if (element.classList.contains('report-title') || element.classList.contains('card-header')) {
+    if (element.classList.contains('report-title') ) {
       const titleText = element.textContent?.trim() || '';
       
       if (!processedHeadings.has(titleText)) {
