@@ -258,23 +258,39 @@ export class DownloadService {
     const isCard = el.classList.contains('card') || el.classList.contains('report-container');
     const titleEl = el.querySelector('.card-header, .report-title');
     const titleText = titleEl?.textContent?.trim();
+  
+    // Add card header
     if (isCard && titleText && !headings.has(titleText)) {
       content.push({ text: titleText, style: 'header3', fillColor: '#f8f9fa', padding: [6, 6, 6, 6], margin: [0, 0, 0, 0] });
       headings.add(titleText);
     }
+  
     const stack: any[] = [];
+  
+    // NEW: Capture block containers with standalone text like "Regional Breakdown"
+    if (!isCard && el.childElementCount === 0 && el.textContent?.trim()) {
+      const text = el.textContent.trim();
+      if (!headings.has(text)) {
+        content.push({ text, style: 'header4', margin: [0, 3, 0, 3] });
+        headings.add(text);
+        return; // avoid double push
+      }
+    }
+  
     for (const child of Array.from(el.children)) {
       if (this.shouldIncludeElement(child as HTMLElement)) {
         const childContent = await this.processElement(child as HTMLElement, headings);
         stack.push(...childContent);
       }
     }
+  
     if (isCard && stack.length) {
       content.push({ stack, margin: [0, 0, 0, 8], padding: [6, 6, 6, 6], background: '#fff', border: [1, 1, 1, 1], borderColor: '#ddd', borderRadius: 5, unbreakable: true });
     } else {
       content.push(...stack);
     }
   }
+  
 
   private async processDefault(el: HTMLElement, headings: Set<string>, content: any[]): Promise<void> {
     if (el.textContent?.trim()) {
